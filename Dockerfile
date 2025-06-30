@@ -13,4 +13,4 @@ COPY unified_api.py .
 EXPOSE 3000
 
 # Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:3000", "unified_api:app"] 
+CMD ["gunicorn", "--bind", "0.0.0.0:3000", "--timeout", "120", "unified_api:app"]
