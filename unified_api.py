@@ -208,9 +208,13 @@ def process_rows():
             username = str(row.get('username', '')).strip()
             platform = str(row.get('platform', '')).strip()
             
-            # Fallback logic: use sheet data if present, else fetch from Mezink
+            # Only use post1_caption to post6_caption for Gemini
             bio = row.get('bio', '').strip()
-            captions = [row.get(f'post{i}_caption', '').strip() for i in range(1, 7)]
+            # Fallback: if post1_caption is missing but caption exists, use caption
+            post1_caption = row.get('post1_caption', '').strip()
+            if not post1_caption:
+                post1_caption = row.get('caption', '').strip()
+            captions = [post1_caption] + [row.get(f'post{i}_caption', '').strip() for i in range(2, 7)]
             has_sheet_data = bool(bio or any(captions))
 
             if not has_sheet_data:
