@@ -15,8 +15,8 @@ app = Flask(__name__)
 # --- CONFIGURATION ---
 API_URL = 'https://api.cloudsuper.link/sosmed/v1/analytics'
 LOGIN_URL = 'https://api.cloudsuper.link/usr/v1/login'
-EMAIL = os.environ.get('MEZINK_EMAIL', 'help@mez.ink')
-PASSWORD = os.environ.get('MEZINK_PASSWORD', 'Mezink@789')  # Get from environment variable
+EMAIL = os.environ['MEZINK_EMAIL']
+PASSWORD = os.environ['MEZINK_PASSWORD']
 
 # Gemini API key
 genai.configure(api_key=os.environ.get("NEW_API_KEY"))
@@ -208,26 +208,33 @@ def process_rows():
             username = str(row.get('username', '')).strip()
             platform = str(row.get('platform', '')).strip()
             
-            if not username or not platform:
+            # Fallback logic: use sheet data if present, else fetch from Mezink
+            bio = row.get('bio', '').strip()
+            captions = [row.get(f'post{i}_caption', '').strip() for i in range(1, 7)]
+            has_sheet_data = bool(bio or any(captions))
+
+            if not has_sheet_data:
+                api_data = fetch_api_data(username, platform, token)
+                bio, captions = extract_bio_and_captions(api_data)
+
+            bio_clean = sanitize_text(bio)
+            captions_clean = [sanitize_text(caption) for caption in captions]
+
+            prompt = create_prompt(bio_clean, *captions_clean)
+            print("🤖 Prompt to Gemini:\n", prompt)
+
+            if not bio_clean and all(not c for c in captions_clean):
                 results.append({
                     "detected_languages": [],
                     "is_multilingual": False,
                     "content_style": [],
                     "processed_at": datetime.now().isoformat(),
-                    "error": "Missing username or platform"
+                    "error": "No bio or captions found for this user/platform."
                 })
                 continue
 
-            # Step 1: Fetch bio and captions from Mezink API
-            api_data = fetch_api_data(username, platform, token)
-            bio, captions = extract_bio_and_captions(api_data)
-            
-            # Step 2: Process through Gemini
-            bio_clean = sanitize_text(bio)
-            captions_clean = [sanitize_text(caption) for caption in captions]
-            
-            prompt = create_prompt(bio_clean, *captions_clean)
             raw_response = gemini_generate(prompt)
+            print("🔁 Gemini raw response:\n", raw_response)
 
             try:
                 parsed = json.loads(raw_response.strip())
@@ -243,7 +250,6 @@ def process_rows():
                     "error": f"Parsing error: {str(e)} | Raw: {raw_response[:100]}"
                 })
 
-            # Be polite to APIs
             time.sleep(1)
 
         return jsonify(results)
