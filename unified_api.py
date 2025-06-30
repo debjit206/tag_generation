@@ -15,15 +15,6 @@ app = Flask(__name__)
 # --- CONFIGURATION ---
 API_URL = 'https://api.cloudsuper.link/sosmed/v1/analytics'
 LOGIN_URL = 'https://api.cloudsuper.link/usr/v1/login'
-#EMAIL = os.environ['MEZINK_EMAIL']
-#PASSWORD = os.environ['MEZINK_PASSWORD']
-
-EMAIL = os.environ.get('MEZINK_EMAIL')
-PASSWORD = os.environ.get('MEZINK_PASSWORD')
-
-if not EMAIL or not PASSWORD:
-    raise EnvironmentError("❌ Missing MEZINK_EMAIL or MEZINK_PASSWORD in environment variables.")
-
 
 # Gemini API key
 genai.configure(api_key=os.environ.get("NEW_API_KEY"))
@@ -44,8 +35,16 @@ PLATFORM_MAP = {
     'linkedin': 'LINKEDIN'
 }
 
+def get_credentials():
+    email = os.environ.get('MEZINK_EMAIL')
+    password = os.environ.get('MEZINK_PASSWORD')
+    if not email or not password:
+        raise EnvironmentError("❌ Missing MEZINK_EMAIL or MEZINK_PASSWORD in environment variables.")
+    return email, password
+
 def get_auth_token():
     """Get authentication token from Mezink API"""
+    EMAIL, PASSWORD = get_credentials()
     timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
     login_headers = {
         "Accept-Language": "en-US,en;q=0.9",
