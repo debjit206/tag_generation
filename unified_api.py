@@ -16,10 +16,6 @@ app = Flask(__name__)
 API_URL = 'https://api.cloudsuper.link/sosmed/v1/analytics'
 LOGIN_URL = 'https://api.cloudsuper.link/usr/v1/login'
 
-# Gemini API key
-genai.configure(api_key=os.environ.get("NEW_API_KEY"))
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
-
 # Map Excel platform values to API mediaType values
 PLATFORM_MAP = {
     'instagram': 'INSTAGRAM',
@@ -176,9 +172,17 @@ OUTPUT FORMAT:
 }}
 """
 
+def get_gemini_model():
+    api_key = os.environ.get("NEW_API_KEY")
+    if not api_key:
+        raise EnvironmentError("❌ Missing NEW_API_KEY in environment variables.")
+    genai.configure(api_key=api_key)
+    return genai.GenerativeModel('gemini-1.5-flash-latest')
+
 def gemini_generate(prompt):
     """Generate tags using Gemini API"""
     try:
+        model = get_gemini_model()
         if len(prompt) > 5000:
             return json.dumps({"error": "Prompt too long. Skipped to avoid failure."})
         response = model.generate_content(prompt)
