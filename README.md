@@ -84,9 +84,6 @@ Health check endpoint.
 - instagram/ig
 - youtube/yt
 - tiktok/tt
-- facebook/fb
-- twitter/x
-- linkedin
 
 ## Content Style Categories
 
