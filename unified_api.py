@@ -15,8 +15,15 @@ app = Flask(__name__)
 # --- CONFIGURATION ---
 API_URL = 'https://api.cloudsuper.link/sosmed/v1/analytics'
 LOGIN_URL = 'https://api.cloudsuper.link/usr/v1/login'
-EMAIL = os.environ['MEZINK_EMAIL']
-PASSWORD = os.environ['MEZINK_PASSWORD']
+#EMAIL = os.environ['MEZINK_EMAIL']
+#PASSWORD = os.environ['MEZINK_PASSWORD']
+
+EMAIL = os.environ.get('MEZINK_EMAIL')
+PASSWORD = os.environ.get('MEZINK_PASSWORD')
+
+if not EMAIL or not PASSWORD:
+    raise EnvironmentError("❌ Missing MEZINK_EMAIL or MEZINK_PASSWORD in environment variables.")
+
 
 # Gemini API key
 genai.configure(api_key=os.environ.get("NEW_API_KEY"))
