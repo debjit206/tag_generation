@@ -32,8 +32,8 @@ PLATFORM_MAP = {
 }
 
 def get_credentials():
-    email = os.environ.get('MEZINK_EMAIL')
-    password = os.environ.get('MEZINK_PASSWORD')
+    email = os.environ.get('MEZINK_EMAIL', 'help@mez.ink')
+    password = os.environ.get('MEZINK_PASSWORD', 'Mezink@789')
     if not email or not password:
         raise EnvironmentError("❌ Missing MEZINK_EMAIL or MEZINK_PASSWORD in environment variables.")
     return email, password
@@ -173,7 +173,7 @@ OUTPUT FORMAT:
 """
 
 def get_gemini_model():
-    api_key = os.environ.get("NEW_API_KEY")
+    api_key = os.environ.get("NEW_API_KEY", "AIzaSyDbxGhd-zuWzwNbXIx3NxKemsi3cmMsxws")
     if not api_key:
         raise EnvironmentError("❌ Missing NEW_API_KEY in environment variables.")
     genai.configure(api_key=api_key)
@@ -235,7 +235,6 @@ def process_rows():
             captions_clean = [sanitize_text(caption) for caption in captions]
 
             prompt = create_prompt(bio_clean, *captions_clean)
-            print("🤖 Prompt to Gemini:\n", prompt)
 
             if not bio_clean and all(not c for c in captions_clean):
                 results.append({
@@ -248,7 +247,6 @@ def process_rows():
                 continue
 
             raw_response = gemini_generate(prompt)
-            print("🔁 Gemini raw response:\n", raw_response)
 
             try:
                 parsed = json.loads(raw_response.strip())
